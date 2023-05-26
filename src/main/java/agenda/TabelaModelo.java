@@ -1,4 +1,75 @@
-package agenda;
+/*
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TabelaModelo extends AbstractTableModel {
+    private List<String> columns;
+    private List<Object[]> lines;
+
+    public TabelaModelo(JSONObject jsonData) {
+        columns = new ArrayList<>();
+        lines = new ArrayList<>();
+
+        if (!jsonData.isEmpty()) {
+            for (String columnName : jsonData.keySet()) {
+                columns.add(columnName);
+            }
+
+            JSONArray jsonArray = jsonData.toJSONArray(jsonData.names());
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject dataRow = jsonArray.getJSONObject(i);
+                Object[] rowData = new Object[columns.size()];
+
+                for (int j = 0; j < columns.size(); j++) {
+                    rowData[j] = dataRow.get(columns.get(j));
+                }
+
+                lines.add(rowData);
+            }
+        }
+    }
+
+
+
+    @Override
+    public Class<?> getColumnClass(final int columnIndex) {
+        return Object.class; // Pode ser alterado para o tipo de dados específico da coluna
+    }
+
+    @Override
+    public int getColumnCount() {
+        return columns.size();
+    }
+
+    @Override
+    public String getColumnName(final int column) {
+        return columns.get(column);
+    }
+
+    @Override
+    public int getRowCount() {
+        return lines.size();
+    }
+
+    @Override
+    public Object getValueAt(final int rowIndex, final int columnIndex) {
+        return lines.get(rowIndex)[columnIndex];
+    }
+
+    @Override
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return false;
+    }
+}
+
+
+/*package agenda;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,7 +166,7 @@ public class TabelaModelo extends AbstractTableModel {
         return false;
     }
 }
-
+*/
 
 
 
