@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -16,159 +15,29 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.text.ParseException;
 import java.util.*;
-import javax.json.*;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 
 public class Agenda extends JFrame {
-
-    /*Use os seguintes comandos no mySQL para criar o banco de dados
-    create database agenda;
-    use agenda;
-    create table amigos (idAmigo int (7) AUTO_INCREMENT PRIMARY KEY, nome varchar(30), telefone varchar (15));
-    desc amigos;
-    */
-    public String CONSULTA_PADRAO = "SELECT * FROM amigos ORDER BY nome";
     JTable tblAmigos;
     JScrollPane scrlAmigos;
     JTextField txtNome;
     JFormattedTextField ftxtFone;
     MaskFormatter mskTelefone;
-    JButton btnAddAmigo, btnDelAmigo, btnCorrigir, btnSair;
+    JButton btnAddAmigo, btnDelAmigo, btnAlterar, btnSair;
     JLabel lblTitulo, lblNome, lblTelefone;
-    //PreparedStatement pStmtAmigo;
-  //  TabelaModelo mdlAmigo;
-    ActionListener update = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent clic) {
-            System.setProperty("file.encoding", "UTF-8");
-            JTextField idAmigo = new JTextField();
-            JTextField nome = new JTextField();
-            JFormattedTextField fone = new JFormattedTextField(mskTelefone);
 
-            final JComponent[] inputs = new JComponent[]{
-                    new JLabel("<html>Digite os dados corretos:<br>id</html>"),
-                    idAmigo,
-                    new JLabel("Nome"),
-                    nome,
-                    new JLabel("Telefone"),
-                    fone
-            };
-
-            JOptionPane.showMessageDialog(null, inputs, "Corrigir registro", JOptionPane.PLAIN_MESSAGE);
-
-            try {
-                File jsonFile = new File("src/main/resources/amigos.json");
-                ObjectMapper objectMapper = new ObjectMapper();
-                List<Map<String, Object>> amigos = objectMapper.readValue(jsonFile, new TypeReference<>() {});
-
-                if (!idAmigo.getText().equals("") && !nome.getText().equals("") && !fone.getText().equals("")) {
-                    int amigoId = Integer.parseInt(idAmigo.getText());
-                    boolean amigoEncontrado = false;
-
-                    for (Map<String, Object> amigo : amigos) {
-                        int id = (int) amigo.get("id");
-
-                        if (id == amigoId) {
-                            amigo.put("nome", nome.getText());
-                            amigo.put("telefone", fone.getText());
-                            amigoEncontrado = true;
-                            break;
-                        }
-                    }
-
-                    if (amigoEncontrado) {
-                        objectMapper.writeValue(jsonFile, amigos);
-                        System.out.println("Amigo atualizado - id " + amigoId);
-                    } else {
-                        JOptionPane.showMessageDialog(rootPane, "Amigo não encontrado", "Aviso", JOptionPane.WARNING_MESSAGE);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(rootPane, "Preencha todos os dados para correcao", "Aviso", JOptionPane.WARNING_MESSAGE);
-                }
-            } catch (IOException e) {
-                System.out.println("Erro ao ler ou escrever no arquivo JSON: " + e.getMessage());
-            }
-
-            buscaAmigos(); // Atualizando a tabela apresentada
-            txtNome.requestFocus(); // Levando o cursor para um novo nome
-        }
-    };
-    /*
-
-    public String INSERCAO = "INSERT INTO amigos (id,nome,telefone) VALUES (?,?,?)";
-    ActionListener Add = new ActionListener() {
-
-        @Override
-        public void actionPerformed(ActionEvent clic) {
-            try {
-                dbAmigo = new ConexaoDB();
-                pStmtAmigo = dbAmigo.conexao.prepareStatement(INSERCAO);
-
-                if (!txtNome.getText().equals("") && !ftxtFone.getText().equals("")) {// tratamento logico
-                    pStmtAmigo.setString(1, txtNome.getText());
-                    pStmtAmigo.setString(2, ftxtFone.getText());
-
-                    int retorno = pStmtAmigo.executeUpdate();
-                    System.out.println(retorno + " linha inserida - Nome: " + txtNome.getText());
-                } else {
-                    JOptionPane.showMessageDialog(rootPane, "Insira um nome e um número de telefone", "Aviso", JOptionPane.WARNING_MESSAGE);
-                }
-                pStmtAmigo.close();
-                dbAmigo.conexao.close();
-            } catch (SQLException erro2) {
-                System.out.println("Erro ao inserir - " + erro2);
-            }
-            buscaAmigos();//atualizando a tabela apresentada
-            ftxtFone.requestFocus();//levando o cursor para um novo telefone
-        }
-    };
-    public String DELECAO = "DELETE FROM amigos WHERE idAmigo =  (?)";
-    ActionListener Del = new ActionListener() {
-
-        @Override
-        public void actionPerformed(ActionEvent clic) {
-            try {
-                dbAmigo = new ConexaoDB();
-                pStmtAmigo = dbAmigo.conexao.prepareStatement(DELECAO);
-                String idAmigo = "0";
-                if (!idAmigo.equals("")) {// tratamento logico
-                    pStmtAmigo.setString(1, JOptionPane.showInputDialog("Qual o id do amigo a ser excluido?"));
-                    int retorno = pStmtAmigo.executeUpdate();
-                    System.out.println(retorno + " linha excluida - id " + idAmigo);
-                } else {
-                    JOptionPane.showMessageDialog(rootPane, "Insira um id válido", "Aviso", JOptionPane.WARNING_MESSAGE);
-                }
-                pStmtAmigo.close();
-                dbAmigo.conexao.close();
-            } catch (SQLException erro2) {
-                System.out.println("Erro ao excluir - " + erro2);
-            }
-            buscaAmigos();//atualizando a tabela apresentada
-            ftxtFone.requestFocus();//levando o cursor para um novo telefone
-        }
-    };
-    */
-    ActionListener Sair = click -> System.exit(0);
+    public static void main(String[] args) {
+        Agenda amigos = new Agenda();
+        amigos.setVisible(true);
+    }
 
     public Agenda() {
         setTitle("Agenda de telefones");
@@ -183,34 +52,14 @@ public class Agenda extends JFrame {
         caixas();
         rotulos();
         tabela();
-        buscaAmigos();
-    }
-
-            private static String readFileAsString(String filePath) {
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8))) {
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        stringBuilder.append(line);
-                    }
-                    return stringBuilder.toString();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-    public static void main(String[] args) {
-        Agenda amigos = new Agenda();
-        amigos.setVisible(true);
+        listaAmigos();
     }
 
     public final void relogio() {
         Relogio hora = new Relogio();
 
         lblTitulo = hora.lblHorario;
-        lblTitulo.setBounds(150, 0, 120, 24);
+        lblTitulo.setBounds(330, 0, 120, 24);
         add(lblTitulo);
     }
 
@@ -242,11 +91,11 @@ public class Agenda extends JFrame {
         //btnDelAmigo.addActionListener(delete);
         add(btnDelAmigo);
 
-        btnCorrigir = new JButton("Corrigir");
-        btnCorrigir.setBounds(20, 284, 165, 20);
-        btnCorrigir.addActionListener(update);
-        btnCorrigir.setMnemonic(KeyEvent.VK_C);
-        add(btnCorrigir);
+        btnAlterar = new JButton("Alterar");
+        btnAlterar.setBounds(20, 284, 165, 20);
+        btnAlterar.addActionListener(update);
+        btnAlterar.setMnemonic(KeyEvent.VK_C);
+        add(btnAlterar);
     }
 
     public final void rotulos() {
@@ -261,7 +110,7 @@ public class Agenda extends JFrame {
 
     public final void caixas() {
         txtNome = new JTextField(30);
-        txtNome.setBounds(70, 227, 220, 20);
+        txtNome.setBounds(80, 227, 250, 20);
         txtNome.addActionListener(insert);
         add(txtNome);
 
@@ -271,12 +120,12 @@ public class Agenda extends JFrame {
             System.out.println("Erro - " + erro);
         }
         ftxtFone = new JFormattedTextField(mskTelefone);
-        ftxtFone.setBounds(90, 254, 120, 20);
+        ftxtFone.setBounds(80, 254, 100, 20);
         ftxtFone.addActionListener(insert);
         add(ftxtFone);
     }
 
-    public final void buscaAmigos() {
+    public final void listaAmigos() {
         // Ler o arquivo JSON
         String jsonFilePath = "src/main/resources/amigos.json";
         String jsonContent = readFileAsString(jsonFilePath);
@@ -306,13 +155,24 @@ public class Agenda extends JFrame {
         }
         tblAmigos.setModel(tableModel);
     }
+    ActionListener insert = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent clic) {
+            String nome = txtNome.getText();
+            String fone = ftxtFone.getText();
+            adicionarAmigo(nome, fone);
+            txtNome.setText(null);
+            ftxtFone.setValue(null);
+            txtNome.requestFocus();
+            listaAmigos();
+        }
+    };
     public void adicionarAmigo(String nome, String fone) {
         if(nome.length() > 0 && fone.replace(" ","").length() > 3){
             try {
                 String jsonFilePath = "src/main/resources/amigos.json";
-                String jsonContent = readFileAsString(jsonFilePath);
-
                 // Ler o conteúdo do arquivo JSON
+                String jsonContent = readFileAsString(jsonFilePath);
 
                 // Converter o conteúdo em um objeto JSON
                 JSONObject jsonObject = new JSONObject(jsonContent);
@@ -350,16 +210,122 @@ public class Agenda extends JFrame {
 
     }
 
-    final ActionListener insert = new ActionListener() {
+
+    ActionListener update = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent clic) {
-            String nome = txtNome.getText();
-            String fone = ftxtFone.getText();
-            adicionarAmigo(nome, fone);
-            txtNome.setText(null);
-            ftxtFone.setValue(null);
-            txtNome.requestFocus();
-            buscaAmigos();
+            System.setProperty("file.encoding", "UTF-8");
+
+            // Obter o índice da linha selecionada na tabela tblAmigos
+            int selectedRow = tblAmigos.getSelectedRow();
+
+            if (selectedRow != -1) { // Verificar se algum item está selecionado
+                JTextField idAmigo = new JTextField();
+                JTextField nome = new JTextField();
+                JFormattedTextField fone = new JFormattedTextField(mskTelefone);
+
+                // Obter os valores do item selecionado na tabela
+                String amigoId = tblAmigos.getValueAt(selectedRow, 0).toString();
+                String amigoNome = tblAmigos.getValueAt(selectedRow, 1).toString();
+                String amigoTelefone = tblAmigos.getValueAt(selectedRow, 2).toString();
+
+                // Definir os valores nos campos de texto
+                idAmigo.setText(amigoId);
+                idAmigo.setEnabled(false);
+                nome.setText(amigoNome);
+                fone.setText(amigoTelefone);
+
+                final JComponent[] inputs = new JComponent[]{
+                        new JLabel("Id"),
+                        idAmigo,
+                        new JLabel("Nome"),
+                        nome,
+                        new JLabel("Telefone"),
+                        fone
+                };
+                Object[] options = { "Salvar" };
+                JOptionPane.showOptionDialog(null, inputs, "Alterar registro",
+                        JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+                        null, options, options[0]);
+                //JOptionPane.showMessageDialog(null, inputs, "Alterar registro", JOptionPane.PLAIN_MESSAGE);
+
+                try {
+                    File jsonFile = new File("src/main/resources/amigos.json");
+
+
+                    // Ler o conteúdo do arquivo JSON
+                    String jsonContent = readFileAsString(String.valueOf(jsonFile));
+
+                    // Converter o conteúdo em um objeto JSON
+                    JSONObject jsonObject = new JSONObject(jsonContent);
+
+                    // Obter o array de amigos
+                    JSONArray amigosArray = jsonObject.getJSONArray("amigos");
+                    List<Map<String, Object>> amigos = new ArrayList<>();
+                    for (int i = 0; i < amigosArray.length(); i++) {
+                        JSONObject amigoObj = amigosArray.getJSONObject(i);
+                        Map<String, Object> amigoMap = amigoObj.toMap();
+                        amigos.add(amigoMap);
+                    }
+
+                  //  if (!idAmigo.getText().equals("") && !nome.getText().equals("") && !fone.getText().equals("")) {
+                        int amigoIdNum = Integer.parseInt(idAmigo.getText());
+                        boolean amigoEncontrado = false;
+
+                        for (Map<String, Object> amigo : amigos) {
+                            int id = (int) amigo.get("id");
+
+                            if (id == amigoIdNum) {
+                                amigo.put("nome", nome.getText());
+                                amigo.put("telefone", fone.getText());
+                                amigoEncontrado = true;
+                                break;
+                            }
+                        }
+
+                        if (amigoEncontrado) {
+                            // Converter a lista de mapas de amigos de volta para um JSONArray
+                            JSONArray novoAmigosArray = new JSONArray();
+                            for (Map<String, Object> amigo : amigos) {
+                                JSONObject amigoObj = new JSONObject(amigo);
+                                novoAmigosArray.put(amigoObj);
+                            }
+
+
+                            // Atualizar o objeto JSON com o array de amigos modificado
+                            jsonObject.put("amigos", amigosArray);
+
+                            // Escrever o conteúdo atualizado de volta no arquivo JSON
+                            String jsonString = jsonObject.toString();
+                            Files.write(Paths.get(jsonFile.toURI()), jsonString.getBytes(StandardCharsets.UTF_8));
+                            System.out.println("Amigo atualizado - id " + amigoId);
+                        } else {
+                            JOptionPane.showMessageDialog(rootPane, "Amigo não encontrado", "Aviso", JOptionPane.WARNING_MESSAGE);
+                        }
+                   // }
+                }catch (IOException e) {
+                    System.out.println("Erro ao ler ou escrever no arquivo JSON: " + e.getMessage());
+                }
+
+                listaAmigos(); // Atualizando a tabela apresentada
+                txtNome.requestFocus(); // Levando o cursor para um novo nome
+            }
         }
     };
+
+    ActionListener Sair = click -> System.exit(0);
+    private static String readFileAsString(String filePath) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8))) {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return stringBuilder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
